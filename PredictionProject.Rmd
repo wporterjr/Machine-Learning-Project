@@ -9,7 +9,7 @@ output: html_document
 Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project we are using data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
 
 ## Project Overview
-The goal of this project is to predict the manner in which they did the exercise. The prediction is the "classe" variable in the training set and any of the other variables can be used as predictors. The following report describes how the model was built, how it was cross validated, what the expected out of sample error is, and why these methods were used.  This model is then used to predict 20 different test cases to answer the Project Assignment Submission questions. 
+The goal of this project is to predict the manner in which they did the exercise based on the movement measurements. The prediction is the "classe" variable in the training set and any of the other variables can be used as predictors. The following report describes how the model was built, how it was cross validated, what the expected out of sample error is, and why these methods were used.  This model is then used to predict 20 different test cases to answer the Project Assignment Submission questions. 
 
 ```{r libraries}
 options(warn=-1)
@@ -102,10 +102,10 @@ testingPrediction <- predict(modelFit, newdata=testing)
 confusionMatrix(testingPrediction, testing$classe)
 ```
 
-### Results
+## Results
 We have used the Random Forest method to train a model for predicting whether an exercise if being performed correctly or not based on personal data recording devices.  The model was chosen after comparing three different candidate methods and based on perfomance, the random forest method was superior.  The model was then cross validated with both in sample and out of sample data sets and they showed an error rate of 0% and 0.5% respectively (error rate = 1 - Accuracy).  I would expect that the out of sample error would be a bit higher in additional data sets given the probalility of different test subjects, etc.  This model should still be quite accurate given the high level of performance that we see here.
 
-## Running the Model on the Submission Data
+### Running the Model on the Submission Data
 In this section, the machine learning algorithm built above is applied to the
 20 test cases.
 

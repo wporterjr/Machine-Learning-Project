@@ -52,7 +52,7 @@
 </div>
 <div id="project-overview" class="section level2">
 <h2>Project Overview</h2>
-<p>The goal of this project is to predict the manner in which they did the exercise. The prediction is the “classe” variable in the training set and any of the other variables can be used as predictors. The following report describes how the model was built, how it was cross validated, what the expected out of sample error is, and why these methods were used. This model is then used to predict 20 different test cases to answer the Project Assignment Submission questions.</p>
+<p>The goal of this project is to predict the manner in which they did the exercise based on the movement measurements. The prediction is the “classe” variable in the training set and any of the other variables can be used as predictors. The following report describes how the model was built, how it was cross validated, what the expected out of sample error is, and why these methods were used. This model is then used to predict 20 different test cases to answer the Project Assignment Submission questions.</p>
 <pre class="r"><code>options(warn=-1)
 library(caret)</code></pre>
 <pre><code>## Loading required package: lattice
@@ -176,6 +176,12 @@ modelFit
 <h3>Testing the in sample error on the training data</h3>
 <pre class="r"><code>trainingPrediction &lt;- predict(modelFit, newdata=training)
 confusionMatrix(trainingPrediction,training$classe)</code></pre>
+<pre><code>## 
+## Attaching package: 'e1071'
+## 
+## The following object is masked from 'package:Hmisc':
+## 
+##     impute</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -244,13 +250,12 @@ confusionMatrix(testingPrediction, testing$classe)</code></pre>
 ## Detection Prevalence    0.285    0.194    0.175    0.164    0.183
 ## Balanced Accuracy       0.998    0.995    0.993    0.994    0.997</code></pre>
 </div>
-<div id="results" class="section level3">
-<h3>Results</h3>
-<p>We have used the Random Forest method to train a model for predicting whether an exercise if being performed correctly or not based on personal data recording devices. The model was chosen after comparing three different candidate methods and based on perfomance, the random forest method was superior. The model was then cross validated with both in sample and out of sample data sets and they showed an error rate of 0% and 0.5% respectively (error rate = 1 - Accuracy).</p>
 </div>
-</div>
-<div id="running-the-model-on-the-submission-data" class="section level2">
-<h2>Running the Model on the Submission Data</h2>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>We have used the Random Forest method to train a model for predicting whether an exercise if being performed correctly or not based on personal data recording devices. The model was chosen after comparing three different candidate methods and based on perfomance, the random forest method was superior. The model was then cross validated with both in sample and out of sample data sets and they showed an error rate of 0% and 0.5% respectively (error rate = 1 - Accuracy). I would expect that the out of sample error would be a bit higher in additional data sets given the probalility of different test subjects, etc. This model should still be quite accurate given the high level of performance that we see here.</p>
+<div id="running-the-model-on-the-submission-data" class="section level3">
+<h3>Running the Model on the Submission Data</h3>
 <p>In this section, the machine learning algorithm built above is applied to the 20 test cases.</p>
 <p>Tidy up the test data so that the dimensions match the training data</p>
 <pre class="r"><code>finalDf &lt;- testDf[ , which (naColumns==0)]
@@ -274,6 +279,7 @@ answer</code></pre>
 pml_write_files(answer)</code></pre>
 <div class="references">
 
+</div>
 </div>
 </div>
 
