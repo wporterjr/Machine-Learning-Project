@@ -1,0 +1,141 @@
+---
+title: "Prediction Project for the Coursera Machine Learning Class"
+author: "wporter"
+date: "July 22, 2014"
+output: html_document
+---
+
+## Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project we are using data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+## Project Overview
+The goal of this project is to predict the manner in which they did the exercise. The prediction is the "classe" variable in the training set and any of the other variables can be used as predictors. The following report describes how the model was built, how it was cross validated, what the expected out of sample error is, and why these methods were used.  This model is then used to predict 20 different test cases to answer the Project Assignment Submission questions. 
+
+```{r libraries}
+options(warn=-1)
+library(caret)
+library(randomForest)
+library(Hmisc)
+set.seed(6628)
+```
+
+Reading Files from the working directory.
+
+```{r readfiles}
+setwd("~/Documents/Coursera/MachineLearning")
+# Training data
+trainDf <- read.csv("pml-training.csv", na.strings=c("NA", ""))
+dim(trainDf)
+describe(trainDf$classe)
+# Testing data
+testDf <- read.csv("pml-testing.csv", na.strings=c("NA", ""))
+dim(testDf)
+```
+
+Tidy up the data frame by removing the incomplete data columns and the columns that aren't needed as predictors. 
+
+```{r tidy}
+#Find columns with mostly NAs
+naColumns = sapply(trainDf, function(x) {sum(is.na(x))})
+table(naColumns)
+#Remove columns that are populated with NAs
+cleanDf <- trainDf[ , which (naColumns==0)]
+#Remove columns that can't be used as predictors
+tidyTrainDf <- cleanDf[, -c(1:7)]
+```
+
+Splitting the training data for training, model testing, and validation steps
+
+```{r split}
+split <- createDataPartition(y=tidyTrainDf$classe, p=0.75, list=FALSE)
+training <- tidyTrainDf[split,]
+testing <- tidyTrainDf[-split,]
+dim(training)
+dim(testing)
+# Make a smaller split to test different training methods
+msplit <- createDataPartition(y=tidyTrainDf$classe, p=0.10, list=FALSE)
+modeltest <- tidyTrainDf[msplit,]
+dim(modeltest)
+```
+
+### Training Data Class Distribution Plot
+
+```{r plot1}
+plot(tidyTrainDf$classe, col = "blue", main="Counts of Different Classes")
+```
+
+### Testing three different models
+We test three different methods of model building on a smaller (10%) subset of 
+the training data to get an idea of which one should be used to create the model
+
+```{r modeltest, echo=TRUE, message=FALSE, results='hold', cache=TRUE}
+models <- c("svmLinear","rpart","rf")
+
+for (m in 1:3) {
+    fit <- train(classe ~ ., data=modeltest, method=models[m])
+    mPrediction <- predict(fit, newdata=tidyTrainDf)
+    print(paste("Percent correct predictions for method ", models[m], ":  ", 
+                round(100*sum(mPrediction==tidyTrainDf$classe)/nrow(tidyTrainDf)), " %", sep=""))
+}
+```
+
+### The winner is the Random Forest (rf) method.  We use that method to train using the entire training data set.
+
+```{r training, echo=TRUE, message=FALSE, results='hold', cache=TRUE}
+modelFit <- train(classe ~ ., data=training, method="rf")
+modelFit
+# saveRDS(modelFit, "modelFit.RDS")
+# modelFit = readRDS("modelFit.RDS")
+```
+
+### Testing the in sample error on the training data
+
+```{r trconfusion}
+trainingPrediction <- predict(modelFit, newdata=training)
+confusionMatrix(trainingPrediction,training$classe)
+```
+
+### Testing the out of sample error on the testing data
+
+```{r testconfusion}
+testingPrediction <- predict(modelFit, newdata=testing)
+confusionMatrix(testingPrediction, testing$classe)
+```
+
+### Results
+We have used the Random Forest method to train a model for predicting whether an exercise if being performed correctly or not based on personal data recording devices.  The model was chosen after comparing three different candidate methods and based on perfomance, the random forest method was superior.  The model was then cross validated with both in sample and out of sample data sets and they showed an error rate of 0% and 0.5% respectively (error rate = 1 - Accuracy).  I would expect that the out of sample error would be a bit higher in additional data sets given the probalility of different test subjects, etc.  This model should still be quite accurate given the high level of performance that we see here.
+
+## Running the Model on the Submission Data
+In this section, the machine learning algorithm built above is applied to the
+20 test cases.
+
+Tidy up the test data so that the dimensions match the training data
+```{r, cleanfinal}
+finalDf <- testDf[ , which (naColumns==0)]
+finalDf <- finalDf[, -c(1:7)]
+```
+
+Use the model to predict the answers for the project
+
+```{r answer}
+answer <- predict(modelFit, finalDf)
+answer <- as.character(answer)
+answer
+
+```
+
+Write the answers to files for project submission
+
+```{r submit}
+pml_write_files = function(x) {
+    n = length(x)
+    for (i in 1:n) {
+        filename = paste0("problem_id_", i, ".txt")
+        write.table(as.character(x[i]), file = filename, quote = FALSE, row.names = FALSE, 
+            col.names = FALSE)
+    }
+}
+
+pml_write_files(answer)
+```
+
